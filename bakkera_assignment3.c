@@ -161,7 +161,7 @@ void processLargestFile() {
     // Go through all the entries
     while((entry = readdir(currDir)) != NULL) {
         // Checks if file name starts with movies_ and ends with .csv
-        if (strncmp(entry->d_name, dirBegin, strlen(dirBegin)) == 0 && strcmp(entry->d_name + strlen(entry->d_name) - strlen(dirEnd), dirEnd) == 0) {
+        if (strncmp(entry->d_name, dirBegin, strlen(dirBegin)) == 0 && strlen(entry->d_name) >= strlen(dirEnd) && strcmp(entry->d_name + strlen(entry->d_name) - strlen(dirEnd), dirEnd) == 0) {
             stat(entry->d_name, &dirStat);
 
             // Checks if the file is larger than the current largest
