@@ -181,7 +181,38 @@ void processLargestFile() {
 }
 
 void processSmallestFile() {
-    printf("choice 2 worked!");
+    DIR* currDir;
+    struct dirent *entry;
+    struct stat dirStat;
+
+    char dirBegin[] = "movies_";
+    char dirEnd[] = ".csv";
+    char smallestFile[256] = "";
+    int smallestSize = 0;
+
+    // Open the current directory
+    currDir = opendir(".");
+
+    // Go through all the entries
+    while((entry = readdir(currDir)) != NULL) {
+        // Checks if file name starts with movies_ and ends with .csv
+        if (strncmp(entry->d_name, dirBegin, strlen(dirBegin)) == 0 && strlen(entry->d_name) >= strlen(dirEnd) && strcmp(entry->d_name + strlen(entry->d_name) - strlen(dirEnd), dirEnd) == 0) {
+            stat(entry->d_name, &dirStat);
+
+            // Checks if the file is larger than the current largest
+            if (smallestSize == 0 || dirStat.st_size < smallestSize) {
+                smallestSize = dirStat.st_size;
+                strcpy(smallestFile, entry->d_name);
+            }
+        }
+    }
+
+    closedir(currDir);
+
+    if (smallestSize > 0) {
+        struct movie* head = processMovieFile(smallestFile);
+        freeMovieList(head);
+    }
 }
 
 void processSearchedFile() {
