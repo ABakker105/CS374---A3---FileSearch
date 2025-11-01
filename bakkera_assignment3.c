@@ -199,7 +199,7 @@ void processSmallestFile() {
         if (strncmp(entry->d_name, dirBegin, strlen(dirBegin)) == 0 && strlen(entry->d_name) >= strlen(dirEnd) && strcmp(entry->d_name + strlen(entry->d_name) - strlen(dirEnd), dirEnd) == 0) {
             stat(entry->d_name, &dirStat);
 
-            // Checks if the file is larger than the current largest
+            // Checks if the file is smaller than the current smallest
             if (smallestSize == 0 || dirStat.st_size < smallestSize) {
                 smallestSize = dirStat.st_size;
                 strcpy(smallestFile, entry->d_name);
@@ -216,7 +216,44 @@ void processSmallestFile() {
 }
 
 void processSearchedFile() {
-    printf("choice 3 worked!");
+    struct stat dirStat;
+
+    char fileName[256] = "";
+    int found = 0;
+
+    while (!found) {
+        printf("Enter the complete file name: ");
+        scanf("%s", fileName);
+
+        // Checks if the file being searched exists
+        if (stat(fileName, &dirStat) == 0) {
+            struct movie* head = processMovieFile(fileName);
+            freeMovieList(head);
+            found = 1;
+        } else {
+            printf("The file %s was not found. Try again", fileName);
+
+            int choice;
+            printf("\n\n");
+            printf("Which file you want to process?\n");
+            printf("Enter 1 to pick the largest file\n");
+            printf("Enter 2 to pick the smallest file\n");
+            printf("Enter 3 to specify the name of a file\n");
+            printf("\n");
+            printf("Enter a choice from 1 to 3: ");
+            scanf("%d", &choice);
+
+            if (choice == 1) {
+                processLargestFile();
+                found = 1;
+            } else if (choice == 2) {
+                processSmallestFile();
+                found = 1;
+            } else if (choice == !3) {
+                printf("You entered an incorrect choice. Try again.\n");
+            }
+        }
+    }
 }
 
 void main() {
