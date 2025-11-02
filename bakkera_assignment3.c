@@ -3,6 +3,9 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <time.h>
 
 /*
     Struct: movie
@@ -125,6 +128,49 @@ struct movie* createMovie(char* title, int year, char* languages, double ratingV
     return head;
 }
 
+void processMovieData(struct movie* listHead, const char* onid) {
+    srandom(time(NULL));
+    // Generates random number between 0 and 99999
+    int randVal;
+    do {
+        randVal = random();
+    } while (randVal < 0 || randVal > 99999);
+
+    // Builds directory name using my ONID and a random number 
+    char dirName[256];
+    sprintf(dirName, "%s.movies.%d", onid, randVal);
+
+    // Creates new directory with permissions rwxr-x---
+    mkdir(dirName, 0750);
+    chmod(dirName, 0750);
+
+    printf("Created directory with name %s\n", dirName);
+
+    struct movie* curr = listHead;
+    while (curr != NULL) {
+        // Builds the file path for the current movie's year
+        char filePath[256];
+        sprintf(filePath, "%s/%d.txt", dirName, curr->year);
+
+        // Opens file for writing, creates if needed, and appends to the end (permissions: rw-r-----)
+        int fd = open(filePath, O_WRONLY | O_CREAT | O_APPEND, 0640);
+        if (fd == -1) {
+            printf("Error opening file");
+            curr = curr->next;
+            continue;
+        }
+
+        char line[1000];
+        sprintf(line, "%s\n", curr->title);
+        // Writes the title to the file
+        int howMany = write(fd, line, strlen(line));
+
+        close(fd);
+        // Moves to the next movie in the list
+        curr = curr->next;
+    }
+}
+
 /*
     Function: freeMovieList
 
@@ -176,6 +222,7 @@ void processLargestFile() {
 
     if (largestSize > 0) {
         struct movie* head = processMovieFile(largestFile);
+        processMovieData(head, "bakkera");
         freeMovieList(head);
     }
 }
@@ -211,6 +258,7 @@ void processSmallestFile() {
 
     if (smallestSize > 0) {
         struct movie* head = processMovieFile(smallestFile);
+        processMovieData(head, "bakkera");
         freeMovieList(head);
     }
 }
@@ -228,6 +276,7 @@ void processSearchedFile() {
         // Checks if the file being searched exists
         if (stat(fileName, &dirStat) == 0) {
             struct movie* head = processMovieFile(fileName);
+            processMovieData(head, "bakkera");
             freeMovieList(head);
             found = 1;
         } else {
