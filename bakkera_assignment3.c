@@ -8,6 +8,16 @@
 #include <time.h>
 
 /*
+    Program Name: bakkera_assignment3.c
+    Author: Allessandra Bakker
+    Email: bakkera@oregonstate.edu
+
+    Description: This program reads directory entries, finds a file in the current directory based on user 
+    specified criteria, reads and processes the data in the chosen file, creates a directory, and creates new files 
+    in the newly created directory and writes processed data to these files. 
+*/
+
+/*
     Struct: movie
 
     title - Dynamically allocated string for the movie title.
@@ -101,10 +111,21 @@ struct movie* createMovie(char* title, int year, char* languages, double ratingV
         char* langToken = strtok_r(NULL, ",", &savePtr);
         char* ratingValToken = strtok_r(NULL, ",", &savePtr);
 
-        // Converts year from string to int
-        int year = atoi(yearToken);
+        // Converts year from string to int, only if yearToken is valid
+        int year = 0;
+        if (yearToken != NULL) {
+            year = atoi(yearToken);
+        } else {
+            continue;
+        }
+
         // Converts ratingVal from a string to a float
-        double ratingVal = strtof(ratingValToken, NULL);
+        double ratingVal = 0.0;
+        if (ratingValToken != NULL) {
+            ratingVal = strtof(ratingValToken, NULL);
+        } else {
+            continue;
+        }
 
         // Create movie struct
         struct movie* newMovie = createMovie(titleToken, year, langToken, ratingVal);
@@ -128,6 +149,17 @@ struct movie* createMovie(char* title, int year, char* languages, double ratingV
     return head;
 }
 
+/* 
+    Function: processMovieData
+
+    Parameters: 
+    listHead: Pointer to the head of the linked list
+    onid: String representing my ONID 
+
+    Description: Creates a new directory named with my ONID and a random number. Also iterates 
+    through the linked list of movies and writes each movie title into a file 
+    YYYY.txt inside the directory. Each file contains titles of the movies released in that year.
+*/
 void processMovieData(struct movie* listHead, const char* onid) {
     srandom(time(NULL));
     // Generates random number between 0 and 99999
@@ -149,7 +181,7 @@ void processMovieData(struct movie* listHead, const char* onid) {
     struct movie* curr = listHead;
     while (curr != NULL) {
         // Builds the file path for the current movie's year
-        char filePath[256];
+        char filePath[500];
         sprintf(filePath, "%s/%d.txt", dirName, curr->year);
 
         // Opens file for writing, creates if needed, and appends to the end (permissions: rw-r-----)
@@ -191,6 +223,12 @@ void freeMovieList(struct movie* listHead) {
     }
 }
 
+/* 
+    Function: processLargestFile
+
+    Description: Searches the current directory for the largest CSV file whose name starts with 
+    "movies_" and ends with "csv".  
+*/
 void processLargestFile() {
     DIR* currDir;
     struct dirent *entry;
@@ -227,6 +265,12 @@ void processLargestFile() {
     }
 }
 
+/* 
+    Function: processSmallestFile
+
+    Description: Searches the current directory for the smallest CSV file whose name starts with 
+    "movies_" and ends with "csv".  
+*/
 void processSmallestFile() {
     DIR* currDir;
     struct dirent *entry;
@@ -263,6 +307,13 @@ void processSmallestFile() {
     }
 }
 
+/* 
+    Function: processSearchedFile
+
+    Description: Prompts the user to enter the exact name of a CSV file to process. Checks 
+    if this file exists in the current directory. If the file is not found, the program  
+    writes an error message and agains give the user the 3 choices about picking a file.
+*/
 void processSearchedFile() {
     struct stat dirStat;
 
@@ -305,7 +356,13 @@ void processSearchedFile() {
     }
 }
 
-void main() {
+/*
+    Function: main
+
+    Description: Displays a menu of interactive choices to the user 
+    and calls functions based on the user's choice
+ */
+int main() {
     int choice1;
     do {
         printf("1. Select file to process\n");
